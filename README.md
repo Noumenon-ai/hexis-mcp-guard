@@ -84,3 +84,5 @@ hexis rules
 ## License
 
 MIT
+---
+Built by [Noumenon](https://github.com/Noumenon-ai)
