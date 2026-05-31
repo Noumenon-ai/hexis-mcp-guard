@@ -3,9 +3,12 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+import pytest
+
 import hexis.scanner.ai_reasoner as ai_reasoner
 from hexis.checks import get_registry
 from hexis.checks.auth import MissingAuthzChecks, NoAuthTransport
+from hexis.checks.base import BaseCheck
 from hexis.checks.prompt_injection import (
     HiddenUnicodeInToolDef,
     PromptInjectionInDescription,
@@ -22,11 +25,12 @@ from hexis.checks.shell_injection import (
 )
 from hexis.checks.ssrf import SSRFInternalAccess, SSRFServerFetch, SSRFUrlParam
 from hexis.checks.transport import PlaintextTransport
+from hexis.models import Finding
 
 TEST_PATH = Path("demo.py")
 
 
-def _run_source(check: object, source: str):
+def _run_source(check: BaseCheck, source: str) -> list[Finding]:
     tree = ast.parse(source)
     return check.check_source(TEST_PATH, source, tree)
 
@@ -225,7 +229,7 @@ def test_plaintext_transport_skips_localhost_http() -> None:
     assert findings == []
 
 
-def test_ai_reasoner_returns_empty_without_api_key(monkeypatch) -> None:
+def test_ai_reasoner_returns_empty_without_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(ai_reasoner, "AI_AVAILABLE", False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     assert ai_reasoner.analyze_tools([{"name": "fetch"}]) == []

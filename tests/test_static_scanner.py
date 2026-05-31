@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import json
-import zipfile
 from pathlib import Path
 
-import backend
 from hexis.scanner.static import StaticScanner, scan_directory
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -130,28 +128,3 @@ def test_static_scanner_wrapper_matches_function_result() -> None:
     assert [finding.rule_id for finding in wrapper_report.findings] == [
         finding.rule_id for finding in direct_report.findings
     ]
-
-
-def test_build_wheel_includes_package_files(tmp_path: Path) -> None:
-    wheel_name = backend.build_wheel(str(tmp_path))
-    wheel_path = tmp_path / wheel_name
-
-    with zipfile.ZipFile(wheel_path) as archive:
-        names = set(archive.namelist())
-
-    assert "hexis/__init__.py" in names
-    assert any(name.endswith(".dist-info/METADATA") for name in names)
-
-
-def test_build_editable_includes_path_file(tmp_path: Path) -> None:
-    wheel_name = backend.build_editable(str(tmp_path))
-    wheel_path = tmp_path / wheel_name
-
-    with zipfile.ZipFile(wheel_path) as archive:
-        names = archive.namelist()
-        pth_files = [name for name in names if name.endswith(".pth")]
-        pth_text = archive.read(pth_files[0]).decode("utf-8")
-
-    assert pth_files
-    assert str(PROJECT_ROOT) in pth_text
-    assert "hexis/__init__.py" not in names

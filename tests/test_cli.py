@@ -26,13 +26,13 @@ VULNSERVERS = PROJECT_ROOT / "vulnservers"
 
 
 class DummyAsyncClient:
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         del args, kwargs
 
     async def __aenter__(self) -> DummyAsyncClient:
         return self
 
-    async def __aexit__(self, exc_type, exc, tb) -> bool:
+    async def __aexit__(self, exc_type: object, exc: object, tb: object) -> bool:
         del exc_type, exc, tb
         return False
 
@@ -132,7 +132,7 @@ def test_scan_baseline_suppresses_critical_findings(tmp_path: Path) -> None:
     assert parsed["summary"]["TOTAL"] == 15
 
 
-def test_scan_full_mode_merges_dynamic_report(monkeypatch) -> None:
+def test_scan_full_mode_merges_dynamic_report(monkeypatch: pytest.MonkeyPatch) -> None:
     async def fake_probe(url: str, include_fixes: bool) -> ScanReport:
         del include_fixes
         report = ScanReport(
@@ -176,12 +176,12 @@ def test_scan_full_mode_merges_dynamic_report(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
-async def test_probe_server_returns_unreachable_info_finding(monkeypatch) -> None:
-    async def fake_get_tools(client, url: str):
+async def test_probe_server_returns_unreachable_info_finding(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def fake_get_tools(client: object, url: str) -> None:
         del client, url
         return None
 
-    monkeypatch.setattr(dynamic_scanner.httpx, "AsyncClient", DummyAsyncClient)
+    monkeypatch.setattr(httpx, "AsyncClient", DummyAsyncClient)
     monkeypatch.setattr(dynamic_scanner, "_get_tools", fake_get_tools)
 
     report = await probe_server("http://localhost:9000/mcp")
@@ -192,8 +192,8 @@ async def test_probe_server_returns_unreachable_info_finding(monkeypatch) -> Non
 
 
 @pytest.mark.asyncio
-async def test_probe_server_detects_tls_and_ssrf(monkeypatch) -> None:
-    async def fake_get_tools(client, url: str):
+async def test_probe_server_detects_tls_and_ssrf(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def fake_get_tools(client: object, url: str) -> list[dict[str, object]]:
         del client, url
         return [
             {
@@ -206,11 +206,13 @@ async def test_probe_server_detects_tls_and_ssrf(monkeypatch) -> None:
             }
         ]
 
-    async def fake_call_tool(client, url: str, tool_name: str, arguments: dict[str, object]):
+    async def fake_call_tool(
+        client: object, url: str, tool_name: str, arguments: dict[str, object]
+    ) -> dict[str, object]:
         del client, url, tool_name, arguments
         return {"result": {"content": [{"type": "text", "text": "safe"}]}}
 
-    monkeypatch.setattr(dynamic_scanner.httpx, "AsyncClient", DummyAsyncClient)
+    monkeypatch.setattr(httpx, "AsyncClient", DummyAsyncClient)
     monkeypatch.setattr(dynamic_scanner, "_get_tools", fake_get_tools)
     monkeypatch.setattr(dynamic_scanner, "_call_tool", fake_call_tool)
 
