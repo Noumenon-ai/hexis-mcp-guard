@@ -9,7 +9,7 @@ description = "Security scanner for MCP (Model Context Protocol) servers"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
-authors = [{ name = "HEXIS Security", email = "security@hexis.dev" }]
+authors = [{ name = "Noumenon", email = "noumenon.aii@gmail.com" }]
 keywords = ["mcp", "security", "scanner", "model-context-protocol", "vulnerability"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -41,8 +41,8 @@ dev = [
 hexis = "hexis.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/hexis-security/hexis-mcp-guard"
-Issues = "https://github.com/hexis-security/hexis-mcp-guard/issues"
+Homepage = "https://github.com/Noumenon-ai/hexis-mcp-guard"
+Issues = "https://github.com/Noumenon-ai/hexis-mcp-guard/issues"
 
 [tool.setuptools.packages.find]
 # Ship only the importable package — not tests/ or the vulnservers/ test corpus.
