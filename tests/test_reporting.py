@@ -108,6 +108,63 @@ def test_sarif_includes_locations_and_fixes() -> None:
     assert result["fixes"][0]["description"]["text"] == "Restrict outbound domains."
 
 
+def test_sarif_artifact_uris_are_relative_to_scan_root() -> None:
+    report = ScanReport(
+        tool_version="0.1.0",
+        scan_target="/repo/project",
+        scan_mode="static",
+        findings=[
+            Finding(
+                rule_id="HEXIS-CMD-003",
+                title="Eval used on expression",
+                description="eval() is used on tool input.",
+                severity=Severity.CRITICAL,
+                score=10.0,
+                cwe="CWE-95",
+                file_path="/repo/project/src/server.py",
+                line_number=5,
+                category="shell_injection",
+            ),
+        ],
+    )
+    report.build_summary()
+    sarif = json.loads(to_sarif(report))
+    uri = sarif["runs"][0]["results"][0]["locations"][0]["physicalLocation"][
+        "artifactLocation"
+    ]["uri"]
+
+    assert uri == "src/server.py"
+    assert not uri.startswith("/")
+
+
+def test_sarif_uri_for_single_file_scan_target() -> None:
+    report = ScanReport(
+        tool_version="0.1.0",
+        scan_target="/repo/project/server.py",
+        scan_mode="static",
+        findings=[
+            Finding(
+                rule_id="HEXIS-CMD-003",
+                title="Eval used on expression",
+                description="eval() is used on tool input.",
+                severity=Severity.CRITICAL,
+                score=10.0,
+                cwe="CWE-95",
+                file_path="/repo/project/server.py",
+                line_number=5,
+                category="shell_injection",
+            ),
+        ],
+    )
+    report.build_summary()
+    sarif = json.loads(to_sarif(report))
+    uri = sarif["runs"][0]["results"][0]["locations"][0]["physicalLocation"][
+        "artifactLocation"
+    ]["uri"]
+
+    assert uri == "server.py"
+
+
 def test_text_report_renders_findings_and_summary() -> None:
     report = _sample_report()
     buffer = io.StringIO()

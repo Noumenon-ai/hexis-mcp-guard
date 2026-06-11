@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import shlex
+from pathlib import PurePath
 from typing import Any
 
 from hexis.models import ScanReport, Severity
@@ -29,6 +30,28 @@ SEVERITY_TO_SECURITY = {
     Severity.LOW: "low",
     Severity.INFO: "note",
 }
+
+
+def _relative_uri(file_path: str, scan_root: str) -> str:
+    """Convert an absolute file path to a URI relative to the scan root.
+
+    GitHub's Security tab expects repo-relative artifactLocation URIs, not
+    absolute filesystem paths. Falls back gracefully when the file is not
+    under the scan root.
+    """
+    pure = PurePath(file_path)
+    root = PurePath(scan_root)
+    if pure == root:
+        rel = PurePath(pure.name)
+    else:
+        try:
+            rel = pure.relative_to(root)
+        except ValueError:
+            try:
+                rel = pure.relative_to(root.parent)
+            except ValueError:
+                rel = pure
+    return rel.as_posix().lstrip("/")
 
 
 def to_sarif(report: ScanReport) -> str:
@@ -78,7 +101,7 @@ def to_sarif(report: ScanReport) -> str:
             location: dict[str, Any] = {
                 "physicalLocation": {
                     "artifactLocation": {
-                        "uri": finding.file_path,
+                        "uri": _relative_uri(finding.file_path, report.scan_target),
                         "uriBaseId": "%SRCROOT%",
                     },
                 }
@@ -111,7 +134,7 @@ def to_sarif(report: ScanReport) -> str:
                         "name": report.tool_name,
                         "version": report.tool_version,
                         "informationUri": (
-                            "https://github.com/hexis-security/hexis-mcp-guard"
+                            "https://github.com/Noumenon-ai/hexis-mcp-guard"
                         ),
                         "rules": rules,
                     }
