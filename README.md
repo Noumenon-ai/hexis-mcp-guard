@@ -5,13 +5,13 @@ Security scanner for [MCP (Model Context Protocol)](https://modelcontextprotocol
 ## Install
 
 ```bash
-pip install hexis-mcp-guard
+pip install git+https://github.com/Noumenon-ai/hexis-mcp-guard.git
 ```
 
 Or from source:
 
 ```bash
-git clone https://github.com/hexis-security/hexis-mcp-guard.git
+git clone https://github.com/Noumenon-ai/hexis-mcp-guard.git
 cd hexis-mcp-guard
 pip install -e ".[dev]"
 ```
@@ -64,7 +64,7 @@ hexis rules
 ```yaml
 - name: MCP Security Scan
   run: |
-    pip install hexis-mcp-guard
+    pip install git+https://github.com/Noumenon-ai/hexis-mcp-guard.git
     hexis scan ./src --format sarif --output results.sarif --ci --fail-on high
 
 - name: Upload SARIF
